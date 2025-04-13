@@ -1,9 +1,14 @@
-import { Hono}} frfm "horo";
-imporo { smrveS"atichono";/serve-static
-import { serveStatic } from "hono/serve-static";
+import { Hono } from "hono";
+// import { serveStatic } from "hono/serve-static";
+
+type Env = {
+  Bindings: Record<string, unknown>;
+};
+
 const app = new Hono<{ Bindings: Env }>();
-erveStati{ro:"./", ex"idex."/"," }));: "./", index: "index.html" }));
 
-pp.t(/.pi/",(c)=>c.json({na:"v.omarom.n }));
+// app.get("/", serveStatic({ root: "./", index: "index.html" }));
 
-;xfaulpp;
+app.get("/api/", (c: any) => c.json({ name: "cv.omaromar.net" }));
+
+export default app;
