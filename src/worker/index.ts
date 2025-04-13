@@ -1,6 +1,9 @@
-import { Hono } from "hono";
+import { Hono}} frfm "horo";
+imporo { smrveS"atichono";/serve-static
+import { serveStatic } from "hono/serve-static";
 const app = new Hono<{ Bindings: Env }>();
+erveStati{ro:"./", ex"idex."/"," }));: "./", index: "index.html" }));
 
-app.get("/api/", (c) => c.json({ name: "Cloudflare" }));
+pp.t(/.pi/",(c)=>c.json({na:"v.omarom.n }));
 
-export default app;
+;xfaulpp;

@@ -1,14 +1,704 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Vite + React + TS</title>
-  </head>
+Hugging Face's logo
+Hugging Face
+Models
+Datasets
+Spaces
+Posts
+Docs
+Enterprise
+Pricing
 
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/react-app/main.tsx" nonce="MTUxNzA2NjgyNCwzNDM5MTIzMTIx"></script>
-  </body>
+
+
+Spaces:
+
+nz03
+/
+nz03
+
+
+like
+10
+App
+Files
+Community
+1
+nz03
+nz03's picture
+nz03
+Add 2 files
+eac9e5a
+verified
+8 days ago
+raw
+
+Copy download link
+history
+blame
+contribute
+delete
+
+21.2 kB
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cyber Terminal</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inconsolata:wght@400;700&family=Share+Tech+Mono&display=swap');
+        
+        :root {
+            --terminal-bg: #0a0a12;
+            --terminal-green: #0f0;
+            --terminal-cyan: #0ff;
+            --terminal-purple: #b19cd9;
+            --terminal-red: #f44;
+            --terminal-glow: rgba(0, 255, 0, 0.7);
+            --terminal-border: #333;
+            --text-color: #e0e0e0;
+            --text-shadow: 0 0 8px var(--terminal-glow);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: #000;
+            overflow: hidden;
+            font-family: 'Inconsolata', monospace;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            perspective: 1000px;
+        }
+        
+        .matrix-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            opacity: 0.15;
+        }
+        
+        .terminal-container {
+            position: relative;
+            width: 85%;
+            max-width: 800px;
+            height: 70vh;
+            background: var(--terminal-bg);
+            border-radius: 8px;
+            box-shadow: 0 0 30px rgba(0, 255, 0, 0.5),
+                        inset 0 0 10px rgba(0, 255, 0, 0.2);
+            overflow: hidden;
+            border: 1px solid var(--terminal-green);
+            transform-style: preserve-3d;
+            animation: float 8s ease-in-out infinite;
+        }
+        
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0) rotateX(10deg) rotateY(5deg);
+            }
+            50% {
+                transform: translateY(-20px) rotateX(5deg) rotateY(10deg);
+            }
+        }
+        
+        .terminal-header {
+            background: linear-gradient(to right, #0a0a0a, #111);
+            padding: 8px 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: var(--terminal-green);
+            font-family: 'Share Tech Mono', monospace;
+            border-bottom: 1px solid var(--terminal-green);
+            box-shadow: 0 2px 15px rgba(0, 255, 0, 0.3);
+        }
+        
+        .terminal-buttons {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .terminal-button {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .terminal-button.red {
+            background: #ff5f56;
+        }
+        
+        .terminal-button.yellow {
+            background: #ffbd2e;
+        }
+        
+        .terminal-button.green {
+            background: #27c93f;
+        }
+        
+        .terminal-body {
+            padding: 15px;
+            height: calc(100% - 40px);
+            overflow-y: auto;
+            color: var(--text-color);
+            text-shadow: var(--text-shadow);
+            line-height: 1.6;
+        }
+        
+        .typing-text {
+            white-space: pre-wrap;
+            font-size: 1.1rem;
+        }
+        
+        .command-line {
+            margin-top: 20px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .prompt {
+            color: var(--terminal-green);
+            margin-right: 10px;
+            font-weight: bold;
+        }
+        
+        .cursor {
+            display: inline-block;
+            width: 10px;
+            height: 20px;
+            background: var(--terminal-green);
+            animation: blink 1s infinite;
+            vertical-align: middle;
+        }
+        
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+        
+        .command-input {
+            flex-grow: 1;
+            background: transparent;
+            border: none;
+            color: var(--terminal-green);
+            font-family: 'Inconsolata', monospace;
+            font-size: 1.1rem;
+            outline: none;
+            caret-color: var(--terminal-green);
+            text-shadow: var(--text-shadow);
+        }
+        
+        .glitch {
+            position: relative;
+        }
+        
+        .glitch::before, .glitch::after {
+            content: attr(data-text);
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--terminal-bg);
+        }
+        
+        .glitch::before {
+            left: 2px;
+            text-shadow: -2px 0 var(--terminal-red);
+            clip: rect(24px, 550px, 90px, 0);
+            animation: glitch-anim-1 2s infinite linear alternate-reverse;
+        }
+        
+        .glitch::after {
+            left: -2px;
+            text-shadow: -2px 0 var(--terminal-cyan);
+            clip: rect(85px, 550px, 140px, 0);
+            animation: glitch-anim-2 2s infinite linear alternate-reverse;
+        }
+        
+        @keyframes glitch-anim-1 {
+            0% { clip: rect(54px, 800px, 54px, 0); }
+            20% { clip: rect(27px, 800px, 86px, 0); }
+            40% { clip: rect(14px, 800px, 75px, 0); }
+            60% { clip: rect(39px, 800px, 104px, 0); }
+            80% { clip: rect(18px, 800px, 53px, 0); }
+            100% { clip: rect(73px, 800px, 112px, 0); }
+        }
+        
+        @keyframes glitch-anim-2 {
+            0% { clip: rect(35px, 800px, 89px, 0); }
+            20% { clip: rect(56px, 800px, 103px, 0); }
+            40% { clip: rect(22px, 800px, 64px, 0); }
+            60% { clip: rect(88px, 800px, 120px, 0); }
+            80% { clip: rect(13px, 800px, 32px, 0); }
+            100% { clip: rect(42px, 800px, 99px, 0); }
+        }
+        
+        .ascii-art {
+            color: var(--terminal-purple);
+            line-height: 1.3;
+            margin: 15px 0;
+            white-space: pre;
+            font-size: 0.6rem;
+            letter-spacing: 1px;
+        }
+        
+        .highlight {
+            color: var(--terminal-cyan);
+        }
+        
+        .skill-bar {
+            margin: 8px 0;
+        }
+        
+        .skill-name {
+            display: inline-block;
+            width: 120px;
+            color: var(--terminal-green);
+        }
+        
+        .skill-level {
+            display: inline-block;
+            height: 15px;
+            background: linear-gradient(to right, var(--terminal-green), var(--terminal-cyan));
+            box-shadow: 0 0 5px var(--terminal-glow);
+            animation: expand 1s ease-out;
+            transform-origin: left;
+        }
+        
+        @keyframes expand {
+            from { transform: scaleX(0); }
+            to { transform: scaleX(1); }
+        }
+        
+        .contact-item {
+            margin: 8px 0;
+        }
+        
+        .contact-item a {
+            color: var(--terminal-purple);
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+        
+        .contact-item a:hover {
+            color: var(--terminal-cyan);
+            text-shadow: 0 0 10px var(--terminal-cyan);
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        /* Matrix rain effect */
+        canvas {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="matrix" class="matrix-background"></canvas>
+    
+    <div class="terminal-container">
+        <div class="terminal-header">
+            <div class="terminal-buttons">
+                <div class="terminal-button red"></div>
+                <div class="terminal-button yellow"></div>
+                <div class="terminal-button green"></div>
+            </div>
+            <div class="glitch" data-text="user@cyberterminal:~">user@cyberterminal:~</div>
+            <div class="terminal-buttons">
+                <div style="width: 20px;"></div>
+            </div>
+        </div>
+        <div class="terminal-body" id="terminal-body">
+            <div id="typing-text" class="typing-text"></div>
+            <div id="command-line" class="command-line hidden">
+                <span class="prompt">></span>
+                <input type="text" class="command-input" id="command-input" autocomplete="off">
+                <span class="cursor"></span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Matrix effect
+        const canvas = document.getElementById('matrix');
+        const ctx = canvas.getContext('2d');
+        
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        
+        const katakana = 'アァカサタナハマヤャラワガザダバパイィキシチニヒミリヰギジヂビピウゥクスツヌフムユュルグズブヅプエェケセテネヘメレヱゲゼデベペオォコソトノホモヨョロヲゴゾドボポヴッン';
+        const latin = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        const nums = '0123456789';
+        const symbols = '!"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~';
+        const binary = '01';
+        
+        const alphabet = katakana + latin + nums + symbols + binary;
+        
+        const fontSize = 16;
+        const columns = canvas.width / fontSize;
+        
+        const rainDrops = [];
+        
+        for (let x = 0; x < columns; x++) {
+            rainDrops[x] = 1;
+        }
+        
+        function draw() {
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            ctx.fillStyle = '#0f0';
+            ctx.font = fontSize + 'px monospace';
+            
+            for (let i = 0; i < rainDrops.length; i++) {
+                const text = alphabet.charAt(Math.floor(Math.random() * alphabet.length));
+                ctx.fillText(text, i * fontSize, rainDrops[i] * fontSize);
+                
+                if (rainDrops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+                    rainDrops[i] = 0;
+                }
+                rainDrops[i]++;
+            }
+            
+            requestAnimationFrame(draw);
+        }
+        
+        // Terminal typing effect
+        const terminalText = document.getElementById('typing-text');
+        const commandLine = document.getElementById('command-line');
+        const commandInput = document.getElementById('command-input');
+        
+        // --- English Messages ---
+        const messages_en = [
+            { text: "Initializing system...", delay: 50 },
+            { text: "Loading profile data...", delay: 50 },
+            { text: "██████████████ 100%", delay: 30, style: "color: #0ff" },
+            { text: "\n", delay: 200 },
+            { text: "> Welcome // ACCESS GRANTED", delay: 10, style: "color: #0f0; font-weight: bold" },
+            { text: "\n\n", delay: 100 },
+            { text: ">> SYSTEM USER PROFILE <<", delay: 10, style: "color: #b19cd9; text-decoration: underline" },
+            { text: "\n", delay: 100 },
+            { text: "> NAME: ", delay: 20 },
+            { text: "Ómar Örn Magnússon", delay: 50, style: "color: #0ff; font-weight: bold" },
+            { text: "\n", delay: 50 },
+            { text: "> TITLE: ", delay: 20 },
+            { text: "Automation Developer / Microsoft Tech Specialist", delay: 50, style: "color: #0ff" },
+            { text: "\n", delay: 50 },
+            { text: "> LOCATION: ", delay: 20 },
+            { text: "Reykjavik, Iceland", delay: 70, style: "color: #e0e0e0" },
+            { text: "\n", delay: 50 },
+            { text: "> STATUS: ", delay: 20 },
+            { text: "ACTIVE // MCP since 1999 // Automation Enthusiast", delay: 50, style: "color: #0f0" },
+            { text: "\n\n", delay: 100 },
+            { text: ">> SKILL MATRIX <<", delay: 10, style: "color: #b19cd9; text-decoration: underline" },
+            { text: "\n", delay: 100 },
+            { text: "> Power Automate:      ", delay: 20 }, { text: "██████████", delay: 30, style: "color: #0ff; background: #0ff; margin-right: 5px;" }, { text: " 95%", delay: 30, style: "color: #0ff" }, { text: "\n", delay: 50 },
+            { text: "> PowerShell:          ", delay: 20 }, { text: "█████████▉", delay: 30, style: "color: #0ff; background: #0ff; margin-right: 5px;" }, { text: " 90%", delay: 30, style: "color: #0ff" }, { text: "\n", delay: 50 },
+            { text: "> Azure:               ", delay: 20 }, { text: "████████▊ ", delay: 30, style: "color: #0ff; background: #0ff; margin-right: 5px;" }, { text: " 85%", delay: 30, style: "color: #0ff" }, { text: "\n", delay: 50 },
+            { text: "> M365 / Office 365: ", delay: 20 }, { text: "████████▊ ", delay: 30, style: "color: #0ff; background: #0ff; margin-right: 5px;" }, { text: " 85%", delay: 30, style: "color: #0ff" }, { text: "\n", delay: 50 },
+            { text: "> SharePoint:          ", delay: 20 }, { text: "████████▍ ", delay: 30, style: "color: #0ff; background: #0ff; margin-right: 5px;" }, { text: " 80%", delay: 30, style: "color: #0ff" }, { text: "\n", delay: 50 },
+            { text: "> Automation (General):", delay: 20 }, { text: "██████████", delay: 30, style: "color: #0ff; background: #0ff; margin-right: 5px;" }, { text: " 95%", delay: 30, style: "color: #0ff" }, { text: "\n", delay: 50 },
+            { text: "> System Admin:        ", delay: 20 }, { text: "███████▎  ", delay: 30, style: "color: #0ff; background: #0ff; margin-right: 5px;" }, { text: " 70%", delay: 30, style: "color: #0ff" }, { text: "\n\n", delay: 100 },
+            { text: ">> CONTACT POINTS <<", delay: 10, style: "color: #b19cd9; text-decoration: underline" },
+            { text: "\n", delay: 100 },
+            { text: "> EMAIL:    ", delay: 20 }, { text: "omarorn@gmail.com", delay: 30, style: "color: #0ff" }, { text: "\n", delay: 50 },
+            { text: "> LINKEDIN: ", delay: 20 }, { text: "linkedin.com/in/omarorn/", delay: 30, style: "color: #0ff" }, { text: "\n", delay: 50 },
+            { text: "> PHONE:    ", delay: 20 }, { text: "+354 852 3139", delay: 30, style: "color: #0ff" }, { text: "\n\n", delay: 100 },
+            { text: "> Type 'help' for commands", delay: 30, style: "color: #0f0" }, { text: "\n", delay: 50 },
+        ];
+
+        // --- Icelandic Messages ---
+        const messages_is = [
+             { text: "Kerfi ræst...", delay: 50 },
+            { text: "Hleð prófílgögnum...", delay: 50 },
+            { text: "██████████████ 100%", delay: 30, style: "color: #0ff" },
+            { text: "\n", delay: 200 },
+            { text: "> Velkomin/n // AÐGANGUR VEITTUR", delay: 10, style: "color: #0f0; font-weight: bold" },
+            { text: "\n\n", delay: 100 },
+            { text: ">> KERFISNOTANDA PRÓFÍLL <<", delay: 10, style: "color: #b19cd9; text-decoration: underline" },
+            { text: "\n", delay: 100 },
+            { text: "> NAFN: ", delay: 20 },
+            { text: "Ómar Örn Magnússon", delay: 50, style: "color: #0ff; font-weight: bold" },
+            { text: "\n", delay: 50 },
+            { text: "> TITILL: ", delay: 20 },
+            { text: "Sjálfvirknisérfræðingur / Microsoft Sérfræðingur", delay: 50, style: "color: #0ff" },
+            { text: "\n", delay: 50 },
+            { text: "> STAÐSETNING: ", delay: 20 },
+            { text: "Reykjavík, Ísland", delay: 70, style: "color: #e0e0e0" },
+            { text: "\n", delay: 50 },
+            { text: "> STAÐA: ", delay: 20 },
+            { text: "VIRKUR // MCP síðan 1999 // Áhugi á sjálfvirkni", delay: 50, style: "color: #0f0" },
+            { text: "\n\n", delay: 100 },
+            { text: ">> FÆRNI <<", delay: 10, style: "color: #b19cd9; text-decoration: underline" },
+            { text: "\n", delay: 100 },
+            { text: "> Power Automate:      ", delay: 20 }, { text: "██████████", delay: 30, style: "color: #0ff; background: #0ff; margin-right: 5px;" }, { text: " 95%", delay: 30, style: "color: #0ff" }, { text: "\n", delay: 50 },
+            { text: "> PowerShell:          ", delay: 20 }, { text: "█████████▉", delay: 30, style: "color: #0ff; background: #0ff; margin-right: 5px;" }, { text: " 90%", delay: 30, style: "color: #0ff" }, { text: "\n", delay: 50 },
+            { text: "> Azure:               ", delay: 20 }, { text: "████████▊ ", delay: 30, style: "color: #0ff; background: #0ff; margin-right: 5px;" }, { text: " 85%", delay: 30, style: "color: #0ff" }, { text: "\n", delay: 50 },
+            { text: "> M365 / Office 365: ", delay: 20 }, { text: "████████▊ ", delay: 30, style: "color: #0ff; background: #0ff; margin-right: 5px;" }, { text: " 85%", delay: 30, style: "color: #0ff" }, { text: "\n", delay: 50 },
+            { text: "> SharePoint:          ", delay: 20 }, { text: "████████▍ ", delay: 30, style: "color: #0ff; background: #0ff; margin-right: 5px;" }, { text: " 80%", delay: 30, style: "color: #0ff" }, { text: "\n", delay: 50 },
+            { text: "> Sjálfvirkni (Almennt):", delay: 20 }, { text: "██████████", delay: 30, style: "color: #0ff; background: #0ff; margin-right: 5px;" }, { text: " 95%", delay: 30, style: "color: #0ff" }, { text: "\n", delay: 50 },
+            { text: "> Kerfisstjórnun:      ", delay: 20 }, { text: "███████▎  ", delay: 30, style: "color: #0ff; background: #0ff; margin-right: 5px;" }, { text: " 70%", delay: 30, style: "color: #0ff" }, { text: "\n\n", delay: 100 },
+             { text: ">> SAMSKIPTALEIÐIR <<", delay: 10, style: "color: #b19cd9; text-decoration: underline" },
+            { text: "\n", delay: 100 },
+            { text: "> TÖLVUPÓSTUR: ", delay: 20 }, { text: "omarorn@gmail.com", delay: 30, style: "color: #0ff" }, { text: "\n", delay: 50 },
+            { text: "> LINKEDIN:    ", delay: 20 }, { text: "linkedin.com/in/omarorn/", delay: 30, style: "color: #0ff" }, { text: "\n", delay: 50 },
+            { text: "> SÍMI:        ", delay: 20 }, { text: "+354 852 3139", delay: 30, style: "color: #0ff" }, { text: "\n\n", delay: 100 },
+            { text: "> Skrifaðu 'help' fyrir skipanir", delay: 30, style: "color: #0f0" }, { text: "\n", delay: 50 },
+        ];
+
+        let currentMessages = messages_en; // Default to English
+        let currentMessageIndex = 0;
+        let currentCharIndex = 0;
+        let isTyping = true;
+        let typeTimeout; // To store the timeout ID
+
+        function typeNextCharacter() {
+            clearTimeout(typeTimeout); // Clear any existing timeout
+
+            if (currentMessageIndex >= currentMessages.length) {
+                isTyping = false;
+                commandLine.classList.remove('hidden');
+                commandInput.focus();
+                return;
+            }
+
+            const currentMessage = currentMessages[currentMessageIndex];
+            const textToType = currentMessage.text;
+
+            if (currentCharIndex < textToType.length) {
+                const char = textToType.charAt(currentCharIndex);
+                const span = document.createElement('span');
+                // Handle newline characters correctly
+                if (char === '\n') {
+                    span.appendChild(document.createElement('br'));
+                } else {
+                    span.textContent = char;
+                }
+
+                if (currentMessage.style) {
+                    span.style = currentMessage.style;
+                }
+
+                terminalText.appendChild(span);
+                currentCharIndex++;
+                terminalText.scrollTop = terminalText.scrollHeight; // Scroll as typing
+
+                typeTimeout = setTimeout(typeNextCharacter, currentMessage.delay);
+            } else {
+                currentMessageIndex++;
+                currentCharIndex = 0;
+                typeTimeout = setTimeout(typeNextCharacter, 100); // Delay before next message object
+            }
+        }
+
+        function restartTypingEffect() {
+            isTyping = true;
+            currentMessageIndex = 0;
+            currentCharIndex = 0;
+            terminalText.innerHTML = ''; // Clear the terminal display
+            commandLine.classList.add('hidden'); // Hide command line while typing
+            clearTimeout(typeTimeout); // Clear any pending typing
+            typeNextCharacter(); // Start typing from the beginning
+        }
+
+        function processCommand(command) {
+            terminalText.appendChild(document.createElement('br'));
+
+            const prompt = document.createElement('span');
+            prompt.textContent = '> ';
+            prompt.style.color = '#0f0';
+            terminalText.appendChild(prompt);
+
+            const cmdText = document.createElement('span');
+            cmdText.textContent = command;
+            cmdText.style.color = '#e0e0e0';
+            terminalText.appendChild(cmdText);
+
+            terminalText.appendChild(document.createElement('br'));
+
+            const response = document.createElement('div');
+            response.style.marginTop = '10px';
+
+            command = command.toLowerCase().trim();
+            let commandProcessed = false;
+            let responseAppended = false; // Flag to track if response was added
+            const currentLang = (currentMessages === messages_is) ? 'is' : 'en'; // Determine current language
+
+            if (command === 'help') {
+                response.innerHTML = (currentLang === 'is') ?
+                    `Mögulegar skipanir:<br>
+                    - <span class="highlight">en</span>: Skipta yfir í ensku<br>
+                    - <span class="highlight">is</span>: Skipta yfir í íslensku<br>
+                    - <span class="highlight">certs</span>: Sýna Microsoft vottanir<br>
+                    - <span class="highlight">history</span>: Sýna ítarlegan starfsferil<br>
+                    - <span class="highlight">hobbies</span>: Sýna áhugamál<br>
+                    - <span class="highlight">books</span>: Sýna bókalista<br>
+                    - <span class="highlight">privat</span>: Einkamál ;)<br>
+                    - <span class="highlight">clear</span>: Hreinsa skjá<br>
+                    - <span class="highlight">exit</span>: Loka (hermir)` :
+                    `Available commands:<br>
+                    - <span class="highlight">en</span>: Switch to English<br>
+                    - <span class="highlight">is</span>: Switch to Icelandic<br>
+                    - <span class="highlight">certs</span>: Show Microsoft Certifications<br>
+                    - <span class="highlight">history</span>: Show detailed work history<br>
+                    - <span class="highlight">hobbies</span>: Show hobbies<br>
+                    - <span class="highlight">books</span>: Show reading list<br>
+                    - <span class="highlight">privat</span>: Private joke ;)<br>
+                    - <span class="highlight">clear</span>: Clear the terminal<br>
+                    - <span class="highlight">exit</span>: Close the terminal (simulated)`;
+                commandProcessed = true;
+            } else if (command === 'en') { // Renamed
+                if (currentMessages !== messages_en) {
+                    currentMessages = messages_en;
+                    response.innerHTML = `Switching language to English...`;
+                    terminalText.appendChild(response);
+                    responseAppended = true;
+                    restartTypingEffect();
+                } else {
+                    response.innerHTML = `Language is already English.`;
+                }
+                 commandProcessed = true;
+            } else if (command === 'is') { // Renamed
+                 if (currentMessages !== messages_is) {
+                    currentMessages = messages_is;
+                    response.innerHTML = `Skipti yfir í íslensku...`;
+                    terminalText.appendChild(response);
+                    responseAppended = true;
+                    restartTypingEffect();
+                } else {
+                    response.innerHTML = `Tungumál er þegar íslenska.`;
+                }
+                commandProcessed = true;
+            } else if (command === 'certs') { // New
+                 response.innerHTML = (currentLang === 'is') ?
+                    `>> Microsoft Vottanir << <br>
+                     Skoða opinbert afrit: <a href="https://learn.microsoft.com/en-gb/users/omarorn/transcript/d95j1b2ojk8j2xp" target="_blank" style="color: var(--terminal-cyan);">Microsoft Learn Transcript</a><br>
+                     (MCP síðan 1999 - meðaltal 1 próf á ári)` :
+                    `>> Microsoft Certifications << <br>
+                     View official transcript: <a href="https://learn.microsoft.com/en-gb/users/omarorn/transcript/d95j1b2ojk8j2xp" target="_blank" style="color: var(--terminal-cyan);">Microsoft Learn Transcript</a><br>
+                     (MCP since 1999 - averaging 1 exam per year)`;
+                 commandProcessed = true;
+            } else if (command === 'history') { // New
+                 response.innerHTML = (currentLang === 'is') ?
+                    `>> Ítarlegur Starfsferill << <br>
+                    [2022-2023] Hugbúnaðarsérfræðingur @ Spektra<br>
+                    [2020-2022] Verktaki / Tæknilegur Ráðgjafi (Össur, Vestmannaeyjabær, Coripharma)<br>
+                    [2016-2020] Microsoft Ráðgjafi @ Sensa<br>
+                    [2014-2016] Microsoft Ráðgjafi @ Opin Kerfi<br>
+                    [2012-2014] Microsoft Ráðgjafi @ Sensa<br>
+                    [2010-2012] Deildarstjóri tölvu- og tæknideildar @ Tækniskólinn<br>
+                    [1999-2010] Ýmis TG störf (Kerfisstjórnun, Ráðgjöf...)` :
+                    `>> Detailed Work History << <br>
+                    [2022-2023] Software Specialist @ Spektra<br>
+                    [2020-2022] Contractor / Technical Consultant (Össur, Vestmannaeyjabær, Coripharma)<br>
+                    [2016-2020] Microsoft Consultant @ Sensa<br>
+                    [2014-2016] Microsoft Consultant @ Opin Kerfi<br>
+                    [2012-2014] Microsoft Consultant @ Sensa<br>
+                    [2010-2012] Head of IT Department @ Tækniskólinn (Technical College)<br>
+                    [1999-2010] Various IT Roles (System Admin, Consulting...)`;
+                 commandProcessed = true;
+            } else if (command === 'hobbies') { // New
+                 response.innerHTML = (currentLang === 'is') ?
+                    `>> Áhugamál << <br>
+                    - Sjálfvirkni (Power Automate, PowerShell, o.fl.)<br>
+                    - Skýjalausnir (Azure)<br>
+                    - Ný tækni almennt<br>
+                    - Stöðugt nám og lestur tæknibóka<br>
+                    - Azure User Group Iceland (stjórnarmeðlimur)` :
+                    `>> Hobbies << <br>
+                    - Automation (Power Automate, PowerShell, etc.)<br>
+                    - Cloud Solutions (Azure)<br>
+                    - New technology in general<br>
+                    - Continuous learning and reading tech books<br>
+                    - Azure User Group Iceland (board member)`;
+                 commandProcessed = true;
+            } else if (command === 'books') { // New
+                 // Extracted from "Cover letter thekking..." PDF
+                 response.innerHTML = (currentLang === 'is') ?
+                    `>> Bókalisti (2023 Dæmi) << <br>
+                    - Five Stars: The Communication Secrets...<br>
+                    - No Excuses!: The Power of Self-Discipline...<br>
+                    - Talk Like TED: The 9 Public Speaking Secrets...<br>
+                    - Getting Naked: A Business Fable...<br>
+                    - The 7 Habits of Highly Effective People<br>
+                    - Never Split the Difference: Negotiating...<br>
+                    - Getting Things Done: The Art of Stress-Free Productivity` :
+                    `>> Reading List (2023 Example) << <br>
+                    - Five Stars: The Communication Secrets...<br>
+                    - No Excuses!: The Power of Self-Discipline...<br>
+                    - Talk Like TED: The 9 Public Speaking Secrets...<br>
+                    - Getting Naked: A Business Fable...<br>
+                    - The 7 Habits of Highly Effective People<br>
+                    - Never Split the Difference: Negotiating...<br>
+                    - Getting Things Done: The Art of Stress-Free Productivity`;
+                 commandProcessed = true;
+            } else if (command === 'privat') { // New
+                 response.innerHTML = (currentLang === 'is') ?
+                    `Af hverju hætti forritarinn með JavaScript? <br>... Þau áttu ekki í neinum <span class="highlight">class</span> saman!` :
+                    `Why did the programmer quit his job? <br>... He didn't get <span class="highlight">arrays</span>!`;
+                 commandProcessed = true;
+            } else if (command === 'clear') {
+                terminalText.innerHTML = '';
+                commandInput.value = '';
+                commandLine.classList.remove('hidden');
+                commandInput.focus();
+                return; // Don't append response or scroll
+            } else if (command === 'exit') {
+                const exitLang = (currentMessages === messages_is) ? 'is' : 'en';
+                 response.innerHTML = (exitLang === 'is') ? `Loka hermi... Bless.` : `Shutting down terminal... Goodbye.`;
+                setTimeout(() => {
+                    document.querySelector('.terminal-container').style.opacity = '0';
+                    document.querySelector('.terminal-container').style.transform = 'scale(0.8)';
+                }, 1000);
+                 commandProcessed = true;
+            }
+
+            if (!commandProcessed) {
+                 const notFoundLang = (currentMessages === messages_is) ? 'is' : 'en';
+                 response.innerHTML = (notFoundLang === 'is') ?
+                    `<span style="color: #f44">Skipun fannst ekki: ${command}</span><br>Skrifaðu 'help' fyrir mögulegar skipanir.` :
+                    `<span style="color: #f44">Command not found: ${command}</span><br>Type 'help' for available commands.`;
+            }
+
+            // Only append response if it wasn't already appended (for lang commands)
+            // and if it's not a language switch command (which handles its own display via restart)
+            if (!responseAppended && command !== 'en' && command !== 'is') {
+                 terminalText.appendChild(response);
+                 terminalText.scrollTop = terminalText.scrollHeight; // Scroll to bottom
+            }
+
+            commandInput.value = '';
+            // Ensure command line is visible after processing non-language/clear commands
+             if (command !== 'en' && command !== 'is' && command !== 'clear') {
+                 commandLine.classList.remove('hidden');
+                 commandInput.focus();
+             }
+        }
+
+        commandInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !isTyping) {
+                processCommand(commandInput.value);
+            }
+        });
+
+        // Start matrix and typing effect on load
+        draw();
+        typeNextCharacter();
+
+    </script>
+<p style="border-radius: 8px; text-align: center; font-size: 12px; color: #fff; margin-top: 16px;position: fixed; left: 8px; bottom: 8px; z-index: 10; background: rgba(0, 0, 0, 0.8); padding: 4px 8px;">Made with <a href="https://enzostvs-deepsite.hf.space" style="color: #fff;" target="_blank" >DeepSite</a> <img src="https://enzostvs-deepsite.hf.space/logo.svg" alt="DeepSite Logo" style="width: 16px; height: 16px; vertical-align: middle;"></p></body>
 </html>

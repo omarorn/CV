@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AirPure - Smart Air Purifier Control</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .air-quality-excellent {
+            background: linear-gradient(135deg, #4CAF50 0%, #81C784 100%);
+        }
+        .air-quality-good {
+            background: linear-gradient(135deg, #81C784 0%, #4FC3F7 100%);
+        }
+        .air-quality-moderate {
+            background: linear-gradient(135deg, #FFD54F 0%, #FFB74D 100%);
+        }
+        .air-quality-poor {
+            background: linear-gradient(135deg, #FF7043 0%, #FF5722 100%);
+        }
+        .air-quality-very-poor {
+            background: linear-gradient(135deg, #E53935 0%, #C62828 100%);
+        }
+        .air-quality-hazardous {
+            background: linear-gradient(135deg, #6A1B9A 0%, #4A148C 100%);
+        }
+        
+        .gauge {
+            width: 200px;
+            height: 100px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .gauge-track {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50% 50% 0 0 / 100% 100% 0 0;
+            overflow: hidden;
+        }
+        
+        .gauge-mask {
+            position: absolute;
+            width: 70%;
+            height: 70%;
+            background: white;
+            border-radius: 50% 50% 0 0 / 100% 100% 0 0;
+            left: 15%;
+            top: 15%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .needle {
+            position: absolute;
+            width: 2px;
+            height: 40%;
+            background: #333;
+            bottom: 50%;
+            left: 50%;
+            transform-origin: bottom center;
+            transform: rotate(-90deg) translateX(-50%);
+            transition: transform 0.5s ease-in-out;
+        }
+        
+        .animated-pulse {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+        
+        .device-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        
+        .modal {
+            transition: all 0.3s ease;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <div class="min-h-screen flex flex-col">
+        <!-- Header -->
+        <header class="bg-indigo-600 text-white shadow-lg">
+            <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+                <div class="flex items-center space-x-2">
+                    <i class="fas fa-wind text-2xl"></i>
+                    <h1 class="text-2xl font-bold">AirPure</h1>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <button id="notification-btn" class="relative">
+                        <i class="fas fa-bell text-xl"></i>
+                        <span class="absolute -top-1 -right-1 bg-red-500 text-white rounded-full h-5 w-5 flex items-center justify-center text-xs animate-pulse">3</span>
+                    </button>
+                    <div class="relative" id="user-menu-button">
+                        <button class="flex items-center space-x-2 focus:outline-none">
+                            <img src="https://randomuser.me/api/portraits/men/32.jpg" alt="User" class="w-8 h-8 rounded-full border-2 border-white">
+                            <span class="hidden md:block font-medium">John D.</span>
+                        </button>
+                        <div id="user-dropdown" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50">
+                            <a href="#" class="block px-4 py-2 text-gray-800 hover:bg-indigo-100">Profile</a>
+                            <a href="#" class="block px-4 py-2 text-gray-800 hover:bg-indigo-100">Settings</a>
+                            <a href="#" class="block px-4 py-2 text-gray-800 hover:bg-indigo-100">Sign out</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="flex-1 container mx-auto px-4 py-8">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- Left Column -->
+                <div class="lg:col-span-2 space-y-6">
+                    <!-- Dashboard Overview -->
+                    <div class="bg-white rounded-xl shadow-md p-6">
+                        <h2 class="text-xl font-bold text-gray-800 mb-4">Dashboard Overview</h2>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="bg-indigo-50 rounded-lg p-4 flex items-center">
+                                <div class="mr-4 text-indigo-600">
+                                    <i class="fas fa-wind text-3xl"></i>
+                                </div>
+                                <div>
+                                    <p class="text-gray-500 text-sm">Purifier Status</p>
+                                    <p class="font-bold text-xl" id="purifier-status">Active</p>
+                                </div>
+                            </div>
+                            <div class="bg-blue-50 rounded-lg p-4 flex items-center">
+                                <div class="mr-4 text-blue-600">
+                                    <i class="fas fa-tachometer-alt text-3xl"></i>
+                                </div>
+                                <div>
+                                    <p class="text-gray-500 text-sm">Current Mode</p>
+                                    <p class="font-bold text-xl" id="current-mode">Auto</p>
+                                </div>
+                            </div>
+                            <div class="bg-green-50 rounded-lg p-4 flex items-center">
+                                <div class="mr-4 text-green-600">
+                                    <i class="fas fa-leaf text-3xl"></i>
+                                </div>
+                                <div>
+                                    <p class="text-gray-500 text-sm">Filter Life</p>
+                                    <p class="font-bold text-xl" id="filter-life">82%</p>
+                                </div>
+                            </div>
+                            <div class="bg-yellow-50 rounded-lg p-4 flex items-center">
+                                <div class="mr-4 text-yellow-600">
+                                    <i class="fas fa-clock text-3xl"></i>
+                                </div>
+                                <div>
+                                    <p class="text-gray-500 text-sm">Uptime Today</p>
+                                    <p class="font-bold text-xl" id="uptime-today">5h 42m</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Real-time Air Quality -->
+                    <div class="bg-white rounded-xl shadow-md p-6">
+                        <div class="flex justify-between items-center mb-4">
+                            <h2 class="text-xl font-bold text-gray-800">Real-time Air Quality</h2>
+                            <div class="flex space-x-2">
+                                <button id="refresh-aqi" class="bg-indigo-100 text-indigo-600 px-3 py-1 rounded-lg hover:bg-indigo-200 transition">
+                                    <i class="fas fa-sync-alt"></i> Refresh
+                                </button>
+                                <button id="location-btn" class="bg-indigo-100 text-indigo-600 px-3 py-1 rounded-lg hover:bg-indigo-200 transition">
+                                    <i class="fas fa-map-marker-alt"></i> Change Location
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="flex flex-col md:flex-row items-center justify-around">
+                            <div class="text-center mb-4 md:mb-0">
+                                <div id="aqi-gauge" class="gauge mx-auto">
+                                    <div class="gauge-track" id="aqi-color">
+                                        <div class="gauge-mask">
+                                            <span class="text-4xl font-bold" id="aqi-value">42</span>
+                                        </div>
+                                    </div>
+                                    <div class="needle" id="aqi-needle"></div>
+                                </div>
+                                <p class="text-lg font-medium mt-2" id="aqi-label">Good</p>
+                                <p class="text-gray-500 text-sm">AQI - Outdoor</p>
+                            </div>
+                            
+                            <div class="text-center">
+                                <div id="indoor-aqi-gauge" class="gauge mx-auto">
+                                    <div class="gauge-track" id="indoor-aqi-color">
+                                        <div class="gauge-mask">
+                                            <span class="text-4xl font-bold" id="indoor-aqi-value">28</span>
+                                        </div>
+                                    </div>
+                                    <div class="needle" id="indoor-aqi-needle"></div>
+                                </div>
+                                <p class="text-lg font-medium mt-2" id="indoor-aqi-label">Excellent</p>
+                                <p class="text-gray-500 text-sm">AQI - Indoor</p>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <div class="p-3 bg-gray-50 rounded-lg">
+                                <p class="text-gray-500 text-sm">PM2.5</p>
+                                <p class="font-bold" id="pm25-value">12.4 µg/m³</p>
+                            </div>
+                            <div class="p-3 bg-gray-50 rounded-lg">
+                                <p class="text-gray-500 text-sm">PM10</p>
+                                <p class="font-bold" id="pm10-value">22.1 µg/m³</p>
+                            </div>
+                            <div class="p-3 bg-gray-50 rounded-lg">
+                                <p class="text-gray-500 text-sm">CO2</p>
+                                <p class="font-bold" id="co2-value">650 ppm</p>
+                            </div>
+                            <div class="p-3 bg-gray-50 rounded-lg">
+                                <p class="text-gray-500 text-sm">VOC</p>
+                                <p class="font-bold" id="voc-value">0.3 mg/m³</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Purifier Control -->
+                    <div class="bg-white rounded-xl shadow-md p-6">
+                        <h2 class="text-xl font-bold text-gray-800 mb-4">Purifier Control</h2>
+                        <div class="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
+                            <div class="flex items-center space-x-4">
+                                <div class="relative">
+                                    <img src="https://via.placeholder.com/150" alt="Air Purifier" class="w-20 h-20 object-contain">
+                                    <div class="absolute -top-1 -right-1 bg-green-500 rounded-full w-5 h-5 border-2 border-white"></div>
+                                </div>
+                                <div>
+                                    <h3 class="font-bold">AirPure Pro 3000</h3>
+                                    <p class="text-gray-500 text-sm">Connected via WiFi</p>
+                                </div>
+                            </div>
+                            
+                            <div class="flex space-x-4">
+                                <button id="power-btn" class="flex items-center justify-center bg-indigo-600 text-white p-3 rounded-full h-12 w-12 shadow-md hover:bg-indigo-700 transition">
+                                    <i class="fas fa-power-off"></i>
+                                </button>
+                                <div class="relative">
+                                    <button id="mode-btn" class="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50 flex items-center">
+                                        <i class="fas fa-cog mr-2"></i> <span id="current-mode-text">Auto</span>
+                                    </button>
+                                    <div id="mode-dropdown" class="hidden absolute right-0 mt-1 w-48 bg-white rounded-md shadow-lg z-10 border border-gray-200">
+                                        <button class="block w-full text-left px-4 py-2 text-gray-800 hover:bg-indigo-50 mode-option" data-mode="auto">
+                                            <i class="fas fa-magic mr-2"></i> Auto
+                                        </button>
+                                        <button class="block w-full text-left px-4 py-2 text-gray-800 hover:bg-indigo-50 mode-option" data-mode="manual">
+                                            <i class="fas fa-sliders-h mr-2"></i> Manual
+                                        </button>
+                                        <button class="block w-full text-left px-4 py-2 text-gray-800 hover:bg-indigo-50 mode-option" data-mode="sleep">
+                                            <i class="fas fa-moon mr-2"></i> Sleep
+                                        </button>
+                                        <button class="block w-full text-left px-4 py-2 text-gray-800 hover:bg-indigo-50 mode-option" data-mode="turbo">
+                                            <i class="fas fa-tachometer-alt mr-2"></i> Turbo
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div id="manual-controls" class="mt-6 hidden">
+                            <div class="mb-4">
+                                <label class="block text-gray-700 mb-2">Fan Speed</label>
+                                <input type="range" min="1" max="5" value="3" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer" id="fan-speed">
+                                <div class="flex justify-between text-xs text-gray-500 mt-1">
+                                    <span>1 (Low)</span>
+                                    <span>2</span>
+                                    <span>3 (Medium)</span>
+                                    <span>4</span>
+                                    <span>5 (High)</span>
+                                </div>
+                            </div>
+                            
+                            <div class="grid grid-cols-2 gap-4">
+                                <label class="inline-flex items-center">
+                                    <input type="checkbox" class="form-checkbox h-5 w-5 text-indigo-600" id="uv-light" checked>
+                                    <span class="ml-2 text-gray-700">UV Light</span>
+                                </label>
+                                <label class="inline-flex items-center">
+                                    <input type="checkbox" class="form-checkbox h-5 w-5 text-indigo-600" id="ionizer" checked>
+                                    <span class="ml-2 text-gray-700">Ionizer</span>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-6">
+                            <h3 class="font-bold text-gray-700 mb-2">Automation Rules</h3>
+                            <div class="space-y-2">
+                                <div class="flex items-center justify-between bg-gray-50 px-4 py-2 rounded-lg">
+                                    <div class="flex items-center">
+                                        <i class="fas fa-bell text-indigo-600 mr-3"></i>
+                                        <div>
+                                            <p class="font-medium">Poor Air Quality Alert</p>
+                                            <p class="text-xs text-gray-500">Send notification when AQI > 100</p>
+                                        </div>
+                                    </div>
+                                    <label class="relative inline-flex items-center cursor-pointer">
+                                        <input type="checkbox" value="" class="sr-only peer" checked>
+                                        <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+                                    </label>
+                                </div>
+                                
+                                <div class="flex items-center justify-between bg-gray-50 px-4 py-2 rounded-lg">
+                                    <div class="flex items-center">
+                                        <i class="fas fa-clock text-indigo-600 mr-3"></i>
+                                        <div>
+                                            <p class="font-medium">Schedule Operation</p>
+                                            <p class="text-xs text-gray-500">Turn on at 9:00 AM - 5:00 PM</p>
+                                        </div>
+                                    </div>
+                                    <label class="relative inline-flex items-center cursor-pointer">
+                                        <input type="checkbox" value="" class="sr-only peer" checked>
+                                        <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+                                    </label>
+                                </div>
+                                
+                                <div class="flex items-center justify-between bg-gray-50 px-4 py-2 rounded-lg">
+                                    <div class="flex items-center">
+                                        <span class="text-indigo-600 mr-3">
+                                            <i class="fas fa-lock"></i>
+                                        </span>
+                                        <div>
+                                            <p class="font-medium">Child Lock</p>
+                                            <p class="text-xs text-gray-500">Prevent manual changes</p>
+                                        </div>
+                                    </div>
+                                    <label class="relative inline-flex items-center cursor-pointer">
+                                        <input type="checkbox" value="" class="sr-only peer">
+                                        <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <button id="add-rule-btn" class="mt-4 flex items-center text-indigo-600 hover:text-indigo-800">
+                                <i class="fas fa-plus-circle mr-1"></i> Add New Rule
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Right Column -->
+                <div class="space-y-6">
+                    <!-- Premium Upgrade Card -->
+                    <div class="bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl shadow-md p-6 text-white">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h2 class="text-xl font-bold mb-1">Premium Features</h2>
+                                <p class="text-indigo-100 mb-4">Unlock advanced controls and analytics</p>
+                            </div>
+                            <span class="bg-white/20 px-3 py-1 rounded-full text-xs font-bold">PRO</span>
+                        </div>
+                        
+                        <ul class="space-y-2 mb-6">
+                            <li class="flex items-center">
+                                <i class="fas fa-check-circle mr-2"></i> Advanced air quality history
+                            </li>
+                            <li class="flex items-center">
+                                <i class="fas fa-check-circle mr-2"></i> Multi-room management
+                            </li>
+                            <li class="flex items-center">
+                                <i class="fas fa-check-circle mr-2"></i> Custom automation rules
+                            </li>
+                            <li class="flex items-center">
+                                <i class="fas fa-check-circle mr-2"></i> Priority support
+                            </li>
+                        </ul>
+                        
+                        <div class="bg-white/10 p-4 rounded-lg mb-4">
+                            <div class="flex justify-between items-center mb-1">
+                                <span class="font-bold">Premium Plan</span>
+                                <span class="text-xl font-bold">$4.99</span>
+                            </div>
+                            <p class="text-indigo-100 text-sm">per month, cancel anytime</p>
+                        </div>
+                        
+                        <button class="w-full bg-white text-indigo-600 font-bold py-3 pxIf you could show the specific part of the code (the JS part), I can help make it more efficient! 4 rounded-lg hover:bg-indigo-50 transition">
+                            Upgrade Now
+                        </button>
+                    </div>
+                    
+                    <!-- Air Quality Breakdown -->
+                    <div class="bg-white rounded-xl shadow-md p-6">
+                        <h2 class="text-xl font-bold text-gray-800 mb-4">Air Quality Breakdown</h2>
+                        <div class="space-y-4">
+                            <div>
+                                <div class="flex justify-between mb-1">
+                                    <span class="text-gray-700">PM2.5</span>
+                                    <span class="text-gray-700" id="pm25-breakdown">12.4 µg/m³</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2.5">
+                                    <div class="bg-blue-600 h-2.5 rounded-full" style="width: 25%"></div>
+                                </div>
+                                <p class="text-xs text-gray-500 mt-1">Fine particles less than 2.5 microns</p>
+                            </div>
+                            
+                            <div>
+                                <div class="flex justify-between mb-1">
+                                    <span class="text-gray-700">PM10</span>
+                                    <span class="text-gray-700" id="pm10-breakdown">22.1 µg/m³</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2.5">
+                                    <div class="bg-green-600 h-2.5 rounded-full" style="width: 35%"></div>
+                                </div>
+                                <p class="text-xs text-gray-500 mt-1">Coarse particles less than 10 microns</p>
+                            </div>
+                            
+                            <div>
+                                <div class="flex justify-between mb-1">
+                                    <span class="text-gray-700">CO2</span>
+                                    <span class="text-gray-700" id="co2-breakdown">650 ppm</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2.5">
+                                    <div class="bg-yellow-500 h-2.5 rounded-full" style="width: 15%"></div>
+                                </div>
+                                <p class="text-xs text-gray-500 mt-1">Carbon dioxide concentration</p>
+                            </div>
+                            
+                            <div>
+                                <div class="flex justify-between mb-1">
+                                    <span class="text-gray-700">VOC</span>
+                                    <span class="text-gray-700" id="voc-breakdown">0.3 mg/m³</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2.5">
+                                    <div class="bg-purple-500 h-2.5 rounded-full" style="width: 10%"></div>
+                                </div>
+                                <p class="text-xs text-gray-500 mt-1">Volatile organic compounds</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Recent Alerts -->
+                    <div class="bg-white rounded-xl shadow-md p-6">
+                        <h2 class="text-xl font-bold text-gray-800 mb-4">Recent Alerts</h2>
+                        <div class="space-y-4">
+                            <div class="flex items-start">
+                                <div class="bg-red-100 text-red-600 rounded-full p-2 mr-3">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                </div>
+                                <div>
+                                    <p class="font-medium">High PM2.5 Detected</p>
+                                    <p class="text-sm text-gray-500">PM2.5 reached 75 µg/m³ at 3:42 PM</p>
+                                    <p class="text-xs text-gray-400 mt-1">2 hours ago</p>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-start">
+                                <div class="bg-yellow-100 text-yellow-600 rounded-full p-2 mr-3">
+                                    <i class="fas fa-bell"></i>
+                                </div>
+                                <div>
+                                    <p class="font-medium">Filter Replacement Soon</p>
+                                    <p class="text-sm text-gray-500">Filter efficiency reduced to 20%</p>
+                                    <p class="text-xs text-gray-400 mt-1">1 day ago</p>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-start">
+                                <div class="bg-blue-100 text-blue-600 rounded-full p-2 mr-3">
+                                    <i class="fas fa-info-circle"></i>
+                                </div>
+                                <div>
+                                    <p class="font-medium">Purifier Activated</p>
+                                    <p class="text-sm text-gray-500">Auto mode detected poor air quality</p>
+                                    <p class="text-xs text-gray-400 mt-1">2 days ago</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <button class="mt-4 text-indigo-600 hover:text-indigo-800 text-sm flex items-center">
+                            <i class="fas fa-history mr-1"></i> View All Alerts
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </main>
+        
+        <!-- Footer -->
+        <footer class="bg-white border-t border-gray-200 py-6">
+            <div class="container mx-auto px-4">
+                <div class="flex flex-col md:flex-row justify-between items-center">
+                    <div class="flex items-center space-x-2 mb-4 md:mb-0">
+                        <i class="fas fa-wind text-indigo-600"></i>
+                        <span class="font-bold">AirPure</span>
+                    </div>
+                    <div class="flex space-x-4">
+                        <a href="#" class="text-gray-500 hover:text-indigo-600">Privacy</a>
+                        <a href="#" class="text-gray-500 hover:text-indigo-600">Terms</a>
+                        <a href="#" class="text-gray-500 hover:text-indigo-600">Help</a>
+                    </div>
+                </div>
+                <p class="text-center md:text-left text-gray-500 text-sm mt-4">© 2023 AirPure Inc. All rights reserved.</p>
+            </div>
+        </footer>
+    </div>
+    
+    <!-- Notification Modal -->
+    <div id="notification-modal" class="fixed inset-0 overflow-y-auto z-50 hidden modal">
+        <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center">
+            <div class="fixed inset-0 transition-opacity" aria-hidden="true">
+                <div class="absolute inset-0 bg-gray-500 opacity-75" id="notification-backdrop"></div>
+            </div>
+            
+            <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                    <div class="sm:flex sm:items-start">
+                        <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-indigo-100 sm:mx-0 sm:h-10 sm:w-10">
+                            <i class="fas fa-bell text-indigo-600"></i>
+                        </div>
+                        <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+                            <h3 class="text-lg leading-6 font-medium text-gray-900" id="modal-title">
+                                Notifications
+                            </h3>
+                            <div class="mt-2 space-y-2 max-h-60 overflow-y-auto">
+                                <div class="p-3 border-b border-gray-100">
+                                    <p class="text-sm font-medium">High PM2.5 Detected</p>
+                                    <p class="text-xs text-gray-500">PM2.5 levels reached unsafe levels at 3:42 PM</p>
+                                </div>
+                                <div class="p-3 border-b border-gray-100">
+                                    <p class="text-sm font-medium">Filter Replacement</p>
+                                    <p class="text-xs text-gray-500">Your filter needs replacement in 2 weeks</p>
+                                </div>
+                                <div class="p-3">
+                                    <p class="text-sm font-medium">New Feature Available</p>
+                                    <p class="text-xs text-gray-500">Try our new air quality forecast feature</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                    <button type="button" id="close-notification-modal" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                        Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Add Rule Modal -->
+    <div id="add-rule-modal" class="fixed inset-0 overflow-y-auto z-50 hidden modal">
+        <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center">
+            <div class="fixed inset-0 transition-opacity" aria-hidden="true">
+                <div class="absolute inset-0 bg-gray-500 opacity-75" id="add-rule-backdrop"></div>
+            </div>
+            
+            <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                    <div class="sm:flex sm:items-start">
+                        <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-indigo-100 sm:mx-0 sm:h-10 sm:w-10">
+                            <i class="fas fa-plus-circle text-indigo-600"></i>
+                        </div>
+                        <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
+                            <h3 class="text-lg leading-6 font-medium text-gray-900">
+                                Add New Automation Rule
+                            </h3>
+                            <div class="mt-4 space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Rule Type</label>
+                                    <select class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md border">
+                                        <option>Air Quality Threshold</option>
+                                        <option>Time Schedule</option>
+                                        <option>Device Presence</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Condition</label>
+                                        <select class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md border">
+                                            <option>PM2.5 above</option>
+                                            <option>PM2.5 below</option>
+                                            <option>PM10 above</option>
+                                            <option>CO2 above</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Value</label>
+                                        <input type="number" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" value="50">
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Action</label>
+                                    <select class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md border">
+                                        <option>Turn on Purifier</option>
+                                        <option>Turn off Purifier</option>
+                                        <option>Set to Turbo Mode</option>
+                                        <option>Send Notification</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                    <button type="button" id="save-rule-btn" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none sm:ml-3 sm:w-auto sm:text-sm">
+                        Save Rule
+                    </button>
+                    <button type="button" id="cancel-rule-btn" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // User menu toggle
+            const userMenuButton = document.getElementById('user-menu-button');
+            const userDropdown = document.getElementById('user-dropdown');
+            
+            userMenuButton.addEventListener('click', function() {
+                userDropdown.classList.toggle('hidden');
+            });
+            
+            // Notification modal toggle
+            const notificationBtn = document.getElementById('notification-btn');
+            const notificationModal = document.getElementById('notification-modal');
+            const notificationBackdrop = document.getElementById('notification-backdrop');
+            const closeNotificationModal = document.getElementById('close-notification-modal');
+            
+            notificationBtn.addEventListener('click', function() {
+                notificationModal.classList.remove('hidden');
+            });
+            
+            notificationBackdrop.addEventListener('click', function() {
+                notificationModal.classList.add('hidden');
+            });
+            
+            closeNotificationModal.addEventListener('click', function() {
+                notificationModal.classList.add('hidden');
+            });
+            
+            // Mode dropdown toggle
+            const modeBtn = document.getElementById('mode-btn');
+            const modeDropdown = document.getElementById('mode-dropdown');
+            const modeOptions = document.querySelectorAll('.mode-option');
+            const currentModeText = document.getElementById('current-mode-text');
+            const manualControls = document.getElementById('manual-controls');
+            
+            modeBtn.addEventListener('click', function() {
+                modeDropdown.classList.toggle('hidden');
+            });
+            
+            modeOptions.forEach(option => {
+                option.addEventListener('click', function() {
+                    const mode = this.getAttribute('data-mode');
+                    currentModeText.textContent = this.textContent.trim();
+                    
+                    // Update current mode in dashboard overview
+                    document.getElementById('current-mode').textContent = 
+                        mode.charAt(0).toUpperCase() + mode.slice(1);
+                    
+                    // Show manual controls if manual mode is selected
+                    if (mode === 'manual') {
+                        manualControls.classList.remove('hidden');
+                    } else {
+                        manualControls.classList.add('hidden');
+                    }
+                    
+                    modeDropdown.classList.add('hidden');
+                });
+            });
+            
+            // Power button toggle
+            const powerBtn = document.getElementById('power-btn');
+            const purifierStatus = document.getElementById('purifier-status');
+            let isPurifierOn = true;
+            
+            powerBtn.addEventListener('click', function() {
+                isPurifierOn = !isPurifierOn;
+                if (isPurifierOn) {
+                    purifierStatus.textContent = 'Active';
+                    powerBtn.innerHTML = '<i class="fas fa-power-off"></i>';
+                    powerBtn.classList.remove('bg-gray-400');
+                    powerBtn.classList.add('bg-indigo-600', 'hover:bg-indigo-700');
+                    
+                    // Update gauge animation
+                    document.getElementById('aqi-needle').classList.remove('opacity-50');
+                    document.getElementById('indoor-aqi-needle').classList.remove('opacity-50');
+                } else {
+                    purifierStatus.textContent = 'Inactive';
+                    powerBtn.innerHTML = '<i class="fas fa-power-off"></i>';
+                    powerBtn.classList.remove('bg-indigo-600', 'hover:bg-indigo-700');
+                    powerBtn.classList.add('bg-gray-400');
+                    
+                    // Update gauge animation
+                    document.getElementById('aqi-needle').classList.add('opacity-50');
+                    document.getElementById('indoor-aqi-needle').classList.add('opacity-50');
+                }
+            });
+            
+            // Add rule modal toggle
+            const addRuleBtn = document.getElementById('add-rule-btn');
+            const addRuleModal = document.getElementById('add-rule-modal');
+            const addRuleBackdrop = document.getElementById('add-rule-backdrop');
+            const cancelRuleBtn = document.getElementById('cancel-rule-btn');
+            
+            addRuleBtn.addEventListener('click', function() {
+                addRuleModal.classList.remove('hidden');
+            });
+            
+            addRuleBackdrop.addEventListener('click', function() {
+                addRuleModal.classList.add('hidden');
+            });
+            
+            cancelRuleBtn.addEventListener('click', function() {
+                addRuleModal.classList.add('hidden');
+            });
+            
+            document.getElementById('save-rule-btn').addEventListener('click', function() {
+                addRuleModal.classList.add('hidden');
+                // In a real app, you would save the rule here
+                alert('New rule added successfully!');
+            });
+            
+            // Update air quality data randomly (simulating API calls)
+            function updateAirQuality() {
+                // Outdoor AQI (0-300)
+                const outdoorAqi = Math.floor(Math.random() * 100);
+                document.getElementById('aqi-value').textContent = outdoorAqi;
+                
+                // Indoor AQI (should be better than outdoor)
+                const indoorAqi = Math.max(0, outdoorAqi - Math.floor(Math.random() * 30));
+                document.getElementById('indoor-aqi-value').textContent = indoorAqi;
+                
+                // Update gauges
+                updateGauge('aqi', outdoorAqi);
+                updateGauge('indoor-aqi', indoorAqi);
+                
+                // Update other metrics
+                document.getElementById('pm25-value').textContent = (outdoorAqi / 5).toFixed(1) + ' µg/m³';
+                document.getElementById('pm10-value').textContent = (outdoorAqi / 3).toFixed(1) + ' µg/m³';
+                document.getElementById('co2-value').textContent = (500 + outdoorAqi * 3) + ' ppm';
+                document.getElementById('voc-value').textContent = (outdoorAqi / 100).toFixed(1) + ' mg/m³';
+                
+                // Update breakdown section
+                document.getElementById('pm25-breakdown').textContent = document.getElementById('pm25-value').textContent;
+                document.getElementById('pm10-breakdown').textContent = document.getElementById('pm10-value').textContent;
+                document.getElementById('co2-breakdown').textContent = document.getElementById('co2-value').textContent;
+                document.getElementById('voc-breakdown').textContent = document.getElementById('voc-value').textContent;
+            }
+            
+            function updateGauge(type, value) {
+                const gaugeElement = document.getElementById(`${type}-gauge`);
+                const colorElement = document.getElementById(`${type}-color`);
+                const needleElement = document.getElementById(`${type}-needle`);
+                const labelElement = document.getElementById(`${type}-label`);
+                
+                // Calculate angle for needle (from -90 to 90 degrees)
+                const angle = -90 + (value / 300) * 180;
+                needleElement.style.transform = `rotate(${angle}deg) translateX(-50%)`;
+                
+                // Update color and label based on AQI value
+                let colorClass, label;
+                if (value <= 50) {
+                    colorClass = 'air-quality-excellent';
+                    label = 'Excellent';
+                } else if (value <= 100) {
+                    colorClass = 'air-quality-good';
+                    label = 'Good';
+                } else if (value <= 150) {
+                    colorClass = 'air-quality-moderate';
+                    label = 'Moderate';
+                } else if (value <= 200) {
+                    colorClass = 'air-quality-poor';
+                    label = 'Poor';
+                } else if (value <= 300) {
+                    colorClass = 'air-quality-very-poor';
+                    label = 'Very Poor';
+                } else {
+                    colorClass = 'air-quality-hazardous';
+                    label = 'Hazardous';
+                }
+                
+                // Reset all possible classes first
+                colorElement.classList.remove(
+                    'air-quality-excellent',
+                    'air-quality-good',
+                    'air-quality-moderate',
+                    'air-quality-poor',
+                    'air-quality-very-poor',
+                    'air-quality-hazardous'
+                );
+                
+                // Add the correct class
+                colorElement.classList.add(colorClass);
+                labelElement.textContent = label;
+            }
+            
+            // Initial update
+            updateAirQuality();
+            
+            // Set up periodic updates (every 5 seconds)
+            setInterval(updateAirQuality, 5000);
+            
+            // Manual refresh button
+            document.getElementById('refresh-aqi').addEventListener('click', updateAirQuality);
+        });
+    </script>
+<p style="border-radius: 8px; text-align: center; font-size: 12px; color: #fff; margin-top: 16px;position: fixed; left: 8px; bottom: 8px; z-index: 10; background: rgba(0, 0, 0, 0.8); padding: 4px 8px;">Made with <img src="https://enzostvs-deepsite.hf.space/logo.svg" alt="DeepSite Logo" style="width: 16px; height: 16px; vertical-align: middle;display:inline-block;margin-right:3px;filter:brightness(0) invert(1);"><a href="https://enzostvs-deepsite.hf.space" style="color: #fff;text-decoration: underline;" target="_blank" >DeepSite</a> - <a href="https://enzostvs-deepsite.hf.space?remix=Ayatis1670/pure-air" style="color: #fff;text-decoration: underline;" target="_blank" >🧬 Remix</a></p></body>
+</html>
